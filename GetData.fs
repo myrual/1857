@@ -1,3 +1,4 @@
+module public ShaZhu
 open FinData;; 
 open System
 
@@ -11,7 +12,7 @@ type DayRecord =
         amount:double
     }
 let dzh = FinData.FxjData();;
-let DayRecord = dzh.GetData("hq", "SH600834", 0)
+let DayRecord = dzh.GetData("hq", "SH600834", 10)
 
 let GStart (x:string[,]) n = System.Convert.ToDouble(x.GetValue(n, 2));;
 let Ghigh (x:string[,]) n =  System.Convert.ToDouble(x.GetValue(n,3));;
