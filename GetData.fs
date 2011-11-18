@@ -12,7 +12,6 @@ type DayRecord =
         amount:double
     }
 let dzh = FinData.FxjData();;
-let DayRecord = dzh.GetData("hq", "SH600834", 10)
 
 let GStart (x:string[,]) n = System.Convert.ToDouble(x.GetValue(n, 2));;
 let Ghigh (x:string[,]) n =  System.Convert.ToDouble(x.GetValue(n,3));;
@@ -42,8 +41,9 @@ let printDataRecord (x:DayRecord) =
         printf "%f\n" x.volume
         printf "%f\n" x.amount
 
-let yesterday = OneRow DayRecord 1
-printDataRecord yesterday
-let myres  = Array2List DayRecord (Array2D.length1(DayRecord) - 1);;
-printfn "see me"
-let a = List.map printDataRecord myres
+let GetHQ (stockid:string) (n:int) = 
+        let hq_handle = dzh.GetData("hq", stockid, n) in
+        let counter = (Array2D.length1(hq_handle) - 1) in
+        Array2List hq_handle counter
+
+let b = List.map printDataRecord (GetHQ "SH601857" 20)
