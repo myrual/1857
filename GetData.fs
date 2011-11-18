@@ -47,3 +47,12 @@ let GetHQ (stockid:string) (n:int) =
         Array2List hq_handle counter
 
 let b = List.map printDataRecord (GetHQ "SH601857" 20)
+
+let MaxPrice (x1:DayRecord) (x2:DayRecord) = 
+        if x1.endp > x2.endp then x1
+        else x2
+
+let rec TopTime (hq:DayRecord list) = 
+    if ((List.length hq) = 1) then hq.Head 
+    else (MaxPrice hq.Head (TopTime hq.Tail))
+
