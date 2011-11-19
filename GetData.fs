@@ -1,4 +1,4 @@
-module public ShaZhu
+module public pdjz
 open FinData;; 
 open System
 
@@ -11,6 +11,17 @@ type DayRecord =
         volume:double;
         amount:double
     }
+type FQRecord = 
+    { time : System.DateTime;
+        lastDay : double;
+        free : double;
+        gift : double;
+        bonus : double;
+        cheaper_price : double;
+        cheaper_count : double;
+    }
+
+
 let dzh = FinData.FxjData();;
 
 let GStart (x:string[,]) n = System.Convert.ToDouble(x.GetValue(n, 2));;
@@ -42,17 +53,42 @@ let printDataRecord (x:DayRecord) =
         printf "%f\n" x.amount
 
 let GetHQ (stockid:string) (n:int) = 
-        let hq_handle = dzh.GetData("hq", stockid, n) in
+        let hq_handle = dzh.GetData("hqfq", stockid, n) in
         let counter = (Array2D.length1(hq_handle) - 1) in
         Array2List hq_handle counter
 
-let b = List.map printDataRecord (GetHQ "SH601857" 20)
+let GetEnd (x:DayRecord) = x.endp
+let GetVolume (x:DayRecord) = x.volume
+let GetAmount (x:DayRecord) = x.amount
+let GetTime (x:DayRecord) = x.time
+let GetHigh (x:DayRecord) = x.high
+let GetLow (x:DayRecord) = x.low
 
-let MaxPrice (x1:DayRecord) (x2:DayRecord) = 
-        if x1.endp > x2.endp then x1
+let ByGreater opc (x1:DayRecord) (x2:DayRecord) = 
+        if (opc x1) > (opc x2) then x1
         else x2
+let ByLess opc (x1:DayRecord) (x2:DayRecord) = 
+        if (opc x1) < (opc x2) then x1
+        else x2
+let rec FoundPeak opFunc (hq:DayRecord list) = 
+    if ((List.length hq) = 1) then hq.Head
+    else opFunc hq.Head (FoundPeak opFunc hq.Tail)
 
-let rec TopTime (hq:DayRecord list) = 
-    if ((List.length hq) = 1) then hq.Head 
-    else (MaxPrice hq.Head (TopTime hq.Tail))
-
+let MinPriceRecord = FoundPeak (ByLess GetEnd)
+let MaxEndpRecord = FoundPeak (ByGreater GetEnd)
+let MaxHighRecord = FoundPeak (ByGreater GetHigh)
+let MinLowRecord = FoundPeak (ByLess GetLow)
+let MinAmountRecord = FoundPeak (ByLess GetAmount)
+let MaxAmountRecord = FoundPeak (ByGreater GetAmount)
+type StockStatic =
+    {   High : DayRecord;
+        Low : DayRecord;
+        TopAmount : DayRecord;
+        BottemAmount : DayRecord;
+    }
+let GetStockStatic hq = 
+    {   High = MaxEndpRecord hq;
+        Low = MinLowRecord hq;
+        TopAmount = MaxAmountRecord hq;
+        BottemAmount = MinAmountRecord hq;
+    }
