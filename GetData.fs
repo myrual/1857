@@ -86,8 +86,3 @@ let GetStockStatic hq =
         TopAmount = MaxAmountRecord hq;
         BottemAmount = MinAmountRecord hq;
     }
-
-
-let average_amount (stockid:string)  n = 
-        let hqlist = GetFQHQ stockid n in
-        let aver_amount = List.average (List.map amountof hqlist) in
