@@ -47,13 +47,14 @@ let GenerateFQIndex (hqinfolist : DayRecord list) (cqinfo : FQRecord) =
         }
 let id2string (stockid:string) = 
         if stockid.[0] = '6' then ("SH" + stockid)
-        else ("SZ" + stockid)
+        else if stockid.[0] = '0' then ("SZ" + stockid)
+        else stockid
 
 let GenFQIndexList (hqlist : DayRecord list) (fqlist : FQRecord list) = 
         List.map (GenerateFQIndex hqlist) fqlist
 
 let GenindexlistByID stockid = 
-        let hqlist = GetHQ (id2string stockid) 0 in
+        let hqlist = HQ (id2string stockid) 0 in
         let fqlist = cqlist stockid in
         GenFQIndexList hqlist  fqlist
 
@@ -75,8 +76,7 @@ let FQRecordWith_FQIndexList_Oneday  (fqindexlist : FQIndex list) (oneday : DayR
 
 let FqFileIsHere (stockid : string) = System.IO.File.Exists(stockid + ".csv")
 
-
-let GetFQHQ (stockid:string) n = 
-        let hqlist = GetHQ (id2string stockid) n in
+let FQHQ (stockid:string) n = 
+        let hqlist = HQ (id2string stockid) n in
         if (FqFileIsHere stockid) then List.map (FQRecordWith_FQIndexList_Oneday (GenindexlistByID stockid)) hqlist
         else hqlist

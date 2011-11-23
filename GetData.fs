@@ -1,7 +1,18 @@
 module public pdjz
 open FinData;; 
 open System;;
+let yunjisuan = "B$993738"
+let jiaoyuchuanmei  = "B$991032"
+let chuangyeban = "SZ399006"
+let yousejinshu = "B$991034"
+let yinhang = "B$991017"
+let baoxian = "B$991255"
+let tongxin = "B$991135"
+let zz100 = "SZ399903"
+let zz200 = "SZ399904"
+let zz500 = "SZ399905"
 
+let index_group = [ yunjisuan; jiaoyuchuanmei; chuangyeban; yousejinshu; yinhang; baoxian ; zz100; zz200; zz500 ; tongxin;]
 type DayRecord = 
     { time:System.DateTime;
         start:double;
@@ -47,7 +58,7 @@ let printDataRecord (x:DayRecord) =
         printf "%f\n" x.volume
         printf "%f\n" x.amount
 
-let GetHQ (stockid:string) (n:int) = 
+let HQ (stockid:string) (n:int) = 
         let hq_handle = dzh.GetData("hqfq", stockid, n) in
         let counter = (Array2D.length1(hq_handle) - 1) in
         Array2List hq_handle counter
@@ -74,15 +85,68 @@ let MaxHighRecord = FoundPeak (ByGreater GetHigh)
 let MinLowRecord = FoundPeak (ByLess GetLow)
 let MinAmountRecord = FoundPeak (ByLess GetAmount)
 let MaxAmountRecord = FoundPeak (ByGreater GetAmount)
+let TwoTimeEndpCompare opc1 opc2 (hq : DayRecord list) = ((GetEnd (opc1 hq)) - (GetEnd (opc2 hq))) / (GetEnd (opc2 hq)) 
+let SpecialPoint2Now = TwoTimeEndpCompare List.head
+let CalcLow2Now = SpecialPoint2Now MinPriceRecord
+let CalcHigh2Now = SpecialPoint2Now MaxEndpRecord
+let CalcLow2High = TwoTimeEndpCompare MaxEndpRecord MinPriceRecord
+let CalcLargeAmount2Now = SpecialPoint2Now MaxAmountRecord
+let BullBear hqlist = 
+        let maxr = MaxEndpRecord hqlist in
+        let minr = MinLowRecord hqlist in 
+        if maxr.time > minr.time then "Bull" else " Bear"
+let ElapseTime opc1 opc2 hqlist = 
+        let opc1r = opc1 hqlist in
+        let opc2r = opc2 hqlist in
+        opc1r.time - opc2r.time
+type TwoPointCompare = 
+    {   endp : Double;
+        time: System.TimeSpan;
+    }
 type StockStatic =
-    {   High : DayRecord;
+    {   Name : String;
+        Trend: String ;
+        High : DayRecord;
         Low : DayRecord;
         TopAmount : DayRecord;
-        BottemAmount : DayRecord;
+        LowAmount : DayRecord;
+        Low2Now : TwoPointCompare;
+        High2Now : TwoPointCompare;
+        Low2High : TwoPointCompare;
+        Large2Now : TwoPointCompare;
     }
-let GetStockStatic hq = 
-    {   High = MaxEndpRecord hq;
+let csvcomma = ","
+let staticheader2string  = 
+        let a = "Name" + csvcomma + "Trend" + csvcomma  in
+        let a1 = a + "High time" + csvcomma + "Low Time" + csvcomma in
+        let b = a1 + "TopAmount Time" + csvcomma  + "LowAmount Time" + csvcomma in
+        let c = b + "Low2Now amp" + csvcomma  + "Low2Now Time" + csvcomma in
+        let d = c + "High2Now amp" + csvcomma  + "High2Now Time" + csvcomma in
+        let e = d +  "Low2High amp" + csvcomma + "Low2High Time" + csvcomma in
+        e + "Large2Now amp" + csvcomma + "Large2Now Time" + "\n"
+
+let static2string (s : StockStatic) = 
+        let a = s.Name + csvcomma + s.Trend + csvcomma  in
+        let a1 = a + s.High.time.Date.ToString() + csvcomma + s.Low.time.Date.ToString() + csvcomma in
+        let b = a1 + s.TopAmount.time.Date.ToString() + csvcomma  + s.LowAmount.time.Date.ToString() + csvcomma in
+        let c = b + s.Low2Now.endp.ToString() + csvcomma  + s.Low2Now.time.ToString() + csvcomma in
+        let d = c + s.High2Now.endp.ToString() + csvcomma  + s.High2Now.time.ToString() + csvcomma in
+        let e = d +  s.Low2High.endp.ToString() + csvcomma + s.Low2High.time.ToString() + csvcomma in
+        e + s.Large2Now.endp.ToString() + csvcomma + s.Large2Now.time.ToString() + "\n"
+        
+let static_of hq name = 
+    {   Name = name
+        Trend = BullBear hq;
+        High = MaxEndpRecord hq;
         Low = MinLowRecord hq;
         TopAmount = MaxAmountRecord hq;
-        BottemAmount = MinAmountRecord hq;
+        LowAmount = MinAmountRecord hq;
+        Low2Now = { endp = CalcLow2Now hq;
+                        time = ElapseTime List.head MinLowRecord hq}
+        High2Now = { endp = CalcHigh2Now hq;
+                        time = ElapseTime List.head MaxEndpRecord hq}
+        Low2High = { endp = CalcLow2High hq;
+                        time = ElapseTime MaxEndpRecord MinLowRecord hq}
+        Large2Now = { endp = CalcLargeAmount2Now hq;
+                        time = ElapseTime List.head MaxAmountRecord hq}
     }
