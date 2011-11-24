@@ -1,4 +1,4 @@
-module public pdjz
+module public jb
 open FinData;; 
 open System;;
 let yunjisuan = "B$993738"
@@ -150,3 +150,12 @@ let static_of hq name =
         Large2Now = { endp = CalcLargeAmount2Now hq;
                         time = ElapseTime List.head MaxAmountRecord hq}
     }
+let timein (t1 : string) (t2 : string) (x : DayRecord) = 
+        let time1 = System.DateTime.Parse(t1) in
+        let time2 = System.DateTime.Parse(t2) in
+        let xtime = GetTime x in
+        if time1 > time2 then (xtime < time1) && (xtime > time2)
+        else (xtime < time2) && (xtime > time1)
+let intimestatic_of hq name t1 t2 = 
+        let matched = List.filter (timein t1 t2) hq in
+        static_of matched name
