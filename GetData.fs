@@ -95,13 +95,19 @@ let BullBear hqlist =
         let maxr = MaxEndpRecord hqlist in
         let minr = MinLowRecord hqlist in 
         if maxr.time > minr.time then "Bull" else " Bear"
+let t3int1t2 t1 t2 t3 = 
+        if t1 > t2 then (t3 < t1) && (t3 > t2)
+        else (t3 < t2) && (t3 > t1)
 let ElapseTime opc1 opc2 hqlist = 
         let opc1r = opc1 hqlist in
         let opc2r = opc2 hqlist in
-        opc1r.time - opc2r.time
-type TwoPointCompare = 
+        let t1 = GetTime opc1r in
+        let t2 = GetTime opc2r in
+        let filteredlist = List.filter (fun x -> t3int1t2 t1 t2 (GetTime x)) hqlist in
+        List.length filteredlist
+type RecordCompare = 
     {   endp : Double;
-        time: System.TimeSpan;
+        time: int;
     }
 type StockStatic =
     {   Name : String;
@@ -110,10 +116,10 @@ type StockStatic =
         Low : DayRecord;
         TopAmount : DayRecord;
         LowAmount : DayRecord;
-        Low2Now : TwoPointCompare;
-        High2Now : TwoPointCompare;
-        Low2High : TwoPointCompare;
-        Large2Now : TwoPointCompare;
+        Low2Now : RecordCompare;
+        High2Now : RecordCompare;
+        Low2High : RecordCompare;
+        Large2Now : RecordCompare;
     }
 let csvcomma = ","
 let staticheader2string  = 
@@ -150,12 +156,18 @@ let static_of hq name =
         Large2Now = { endp = CalcLargeAmount2Now hq;
                         time = ElapseTime List.head MaxAmountRecord hq}
     }
+
+
 let timein (t1 : string) (t2 : string) (x : DayRecord) = 
         let time1 = System.DateTime.Parse(t1) in
         let time2 = System.DateTime.Parse(t2) in
         let xtime = GetTime x in
-        if time1 > time2 then (xtime < time1) && (xtime > time2)
-        else (xtime < time2) && (xtime > time1)
-let intimestatic_of hq name t1 t2 = 
-        let matched = List.filter (timein t1 t2) hq in
-        static_of matched name
+        t3int1t2 time1 time2 xtime
+
+let filtIntime t1 t2 hqlist = List.filter (timein t1 t2) hqlist
+
+let rec filtLastnday n record_list = 
+        match (n, record_list) with
+        | (_, []) -> []
+        | (0, _) -> []
+        | otherwise ->List.append ([List.head record_list])  (filtLastnday (n - 1) (List.tail record_list))

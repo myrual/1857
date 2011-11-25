@@ -75,25 +75,3 @@ let FQRecordWith_FQIndexList_Oneday  (fqindexlist : FQIndex list) (oneday : DayR
         }
 
 let FqFileIsHere (stockid : string) = System.IO.File.Exists( findcqfile stockid)
-
-let FQHQ (stockid:string) n = 
-        let hqlist = HQ (id2string stockid) n in
-        if (FqFileIsHere stockid) then List.map (FQRecordWith_FQIndexList_Oneday (GenindexlistByID stockid)) hqlist
-        else hqlist
-let FenXi stockid name t1 t2 = 
-        let hq = FQHQ stockid 0 in
-        intimestatic_of hq name t1 t2
-
-let FenXi2File filename idnamelist t1 t2 = 
-        let fenxilist = List.map (fun x -> FenXi (fst x) (snd x) t1 t2) idnamelist in
-        let fenxistr = List.map static2string  fenxilist in
-        let title = t1 + t2 + "\n" in
-        let header = staticheader2string in
-        let final = Array.append [| title; header|]  (Array.ofList fenxistr)
-        System.IO.File.WriteAllLines(filename, final)
-
-
-let id = ["B$993738"; "600718"; "600797"; "002093"; "600834"; "601857"]
-let name = [ "yunjisuan"; "dongruan"; "zhedawangxin"; "guomaikeji"; "ShentongDitie"; "zhongguoshiyou"]
-let idname = List.zip id name
-
