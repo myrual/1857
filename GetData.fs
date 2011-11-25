@@ -1,18 +1,7 @@
 module public jb
 open FinData;; 
 open System;;
-let yunjisuan = "B$993738"
-let jiaoyuchuanmei  = "B$991032"
-let chuangyeban = "SZ399006"
-let yousejinshu = "B$991034"
-let yinhang = "B$991017"
-let baoxian = "B$991255"
-let tongxin = "B$991135"
-let zz100 = "SZ399903"
-let zz200 = "SZ399904"
-let zz500 = "SZ399905"
 
-let index_group = [ yunjisuan; jiaoyuchuanmei; chuangyeban; yousejinshu; yinhang; baoxian ; zz100; zz200; zz500 ; tongxin;]
 type DayRecord = 
     { time:System.DateTime;
         start:double;
