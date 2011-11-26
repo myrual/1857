@@ -74,12 +74,12 @@ let MaxHighRecord = FoundPeak (ByGreater GetHigh)
 let MinLowRecord = FoundPeak (ByLess GetLow)
 let MinAmountRecord = FoundPeak (ByLess GetAmount)
 let MaxAmountRecord = FoundPeak (ByGreater GetAmount)
-let TwoTimeEndpCompare opc1 opc2 (hq : DayRecord list) = ((GetEnd (opc1 hq)) - (GetEnd (opc2 hq))) / (GetEnd (opc2 hq)) 
-let SpecialPoint2Now = TwoTimeEndpCompare List.head
-let CalcLow2Now = SpecialPoint2Now MinPriceRecord
-let CalcHigh2Now = SpecialPoint2Now MaxEndpRecord
-let CalcLow2High = TwoTimeEndpCompare MaxEndpRecord MinPriceRecord
-let CalcLargeAmount2Now = SpecialPoint2Now MaxAmountRecord
+let TwoTimeEndPriceAmp opc1 opc2 (hq : DayRecord list) = ((GetEnd (opc1 hq)) - (GetEnd (opc2 hq))) / (GetEnd (opc2 hq)) 
+let Some2Now = TwoTimeEndPriceAmp List.head
+let CalcLow2Now = Some2Now MinPriceRecord
+let CalcHigh2Now = Some2Now MaxEndpRecord
+let CalcLow2High = TwoTimeEndPriceAmp MaxEndpRecord MinPriceRecord
+let CalcLargeAmount2Now = Some2Now MaxAmountRecord
 let BullBear hqlist = 
         let maxr = MaxEndpRecord hqlist in
         let minr = MinLowRecord hqlist in 
@@ -95,9 +95,12 @@ let ElapseTime opc1 opc2 hqlist =
         let filteredlist = List.filter (fun x -> t3int1t2 t1 t2 (GetTime x)) hqlist in
         List.length filteredlist
 type RecordCompare = 
-    {   endp : Double;
+    {   amp : Double;
         time: int;
     }
+let amp_Compare x = x.amp
+let amp_Of = amp_Compare
+let time_Compare x = x.time
 type StockStatic =
     {   Name : String;
         Trend: String ;
@@ -124,10 +127,10 @@ let static2string (s : StockStatic) =
         let a = s.Name + csvcomma + s.Trend + csvcomma  in
         let a1 = a + s.High.time.Date.ToString() + csvcomma + s.Low.time.Date.ToString() + csvcomma in
         let b = a1 + s.TopAmount.time.Date.ToString() + csvcomma  + s.LowAmount.time.Date.ToString() + csvcomma in
-        let c = b + s.Low2Now.endp.ToString() + csvcomma  + s.Low2Now.time.ToString() + csvcomma in
-        let d = c + s.High2Now.endp.ToString() + csvcomma  + s.High2Now.time.ToString() + csvcomma in
-        let e = d +  s.Low2High.endp.ToString() + csvcomma + s.Low2High.time.ToString() + csvcomma in
-        e + s.Large2Now.endp.ToString() + csvcomma + s.Large2Now.time.ToString() + "\n"
+        let c = b + (amp_Of s.Low2Now).ToString() + csvcomma  + (time_Compare s.Low2Now).ToString() + csvcomma in
+        let d = c + (amp_Of s.High2Now).ToString() + csvcomma  + (time_Compare s.High2Now).ToString() + csvcomma in
+        let e = d +  (amp_Of s.Low2High).ToString() + csvcomma + (time_Compare s.Low2High).ToString() + csvcomma in
+        e + (amp_Of s.Large2Now).ToString() + csvcomma + (time_Compare s.Large2Now).ToString() + "\n"
         
 let static_of hq name = 
     {   Name = name
@@ -136,13 +139,13 @@ let static_of hq name =
         Low = MinLowRecord hq;
         TopAmount = MaxAmountRecord hq;
         LowAmount = MinAmountRecord hq;
-        Low2Now = { endp = CalcLow2Now hq;
+        Low2Now = { amp = CalcLow2Now hq;
                         time = ElapseTime List.head MinLowRecord hq}
-        High2Now = { endp = CalcHigh2Now hq;
+        High2Now = { amp = CalcHigh2Now hq;
                         time = ElapseTime List.head MaxEndpRecord hq}
-        Low2High = { endp = CalcLow2High hq;
+        Low2High = { amp = CalcLow2High hq;
                         time = ElapseTime MaxEndpRecord MinLowRecord hq}
-        Large2Now = { endp = CalcLargeAmount2Now hq;
+        Large2Now = { amp = CalcLargeAmount2Now hq;
                         time = ElapseTime List.head MaxAmountRecord hq}
     }
 

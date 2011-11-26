@@ -7,12 +7,19 @@ let FQHQ (stockid:string) n =
         if (FqFileIsHere stockid) then List.map (FQRecordWith_FQIndexList_Oneday (GenindexlistByID stockid)) hqlist
         else hqlist
 
+
+
+
+let SortByLow2HighAmp sta = 
+    amp_Of sta.Low2High
+
 let GeneralFenXi idnamelist filtFunc = 
     let hqList = List.map (fun x -> FQHQ (fst x) 0) idnamelist in
     let nameList = List.map snd idnamelist in
     let filtHqList = List.map filtFunc hqList in
     let hq_name = List.zip filtHqList nameList in
-    List.map (fun x -> static_of (fst x) (snd x)) hq_name
+    let static_list = List.map (fun x -> static_of (fst x) (snd x)) hq_name in
+    List.sortBy(SortByLow2HighAmp) static_list
     
 
 let FenXiList2String fxlist = 
@@ -56,3 +63,5 @@ let idname = List.zip id name
 
 let last5 = LastnDayFX2File "last5" idname 5;;
 let last10 = LastnDayFX2File "last10" idname 10;; 
+let NOW = System.DateTime.Now.Date.ToString()
+let Recent = InTimeFX2File "Oct10ToNow" idname "2011-10-10" NOW
