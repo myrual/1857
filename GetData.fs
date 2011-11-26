@@ -78,12 +78,16 @@ let TwoTimeEndPriceAmp opc1 opc2 (hq : DayRecord list) = ((GetEnd (opc1 hq)) - (
 let Some2Now = TwoTimeEndPriceAmp List.head
 let CalcLow2Now = Some2Now MinPriceRecord
 let CalcHigh2Now = Some2Now MaxEndpRecord
-let CalcLow2High = TwoTimeEndPriceAmp MaxEndpRecord MinPriceRecord
-let CalcLargeAmount2Now = Some2Now MaxAmountRecord
 let BullBear hqlist = 
         let maxr = MaxEndpRecord hqlist in
         let minr = MinLowRecord hqlist in 
         if maxr.time > minr.time then "Bull" else " Bear"
+let CalcLow2High hqlist = 
+    let amp = TwoTimeEndPriceAmp MaxEndpRecord MinPriceRecord hqlist in
+    if BullBear hqlist = "Bull" then amp
+    else -1.0 * amp
+let CalcLargeAmount2Now = Some2Now MaxAmountRecord
+
 let t3int1t2 t1 t2 t3 = 
         if t1 > t2 then (t3 < t1) && (t3 > t2)
         else (t3 < t2) && (t3 > t1)

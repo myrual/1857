@@ -57,11 +57,16 @@ let InTimeFX2File fname idnamelist t1 t2 =
         let str = InTimeFX2String idnamelist t1 t2 in
         fx2csv fname str
 
-let id = ["B$993738"; "600718"; "600797"; "002093"; "600834"; "601857"]
-let name = [ "yunjisuan"; "dongruan"; "zhedawangxin"; "guomaikeji"; "ShentongDitie"; "zhongguoshiyou" ]
+let id = ["B$993738"; "B$991004"; "B$991034"; "B$991019"; "B$991007"; "600718"; "600797"; "002093"; "600834"; "601857"]
+let name = [ "yunjisuan";"jisuanji"; "Yousejinshu"; "meitanshiyou"; "fangdichan";"dongruan"; "zhedawangxin"; "guomaikeji"; "ShentongDitie"; "zhongguoshiyou" ]
 let idname = List.zip id name
+
+let shanghai_n n = static_of (FQHQ "SH000001" n) "ShangHaih"
+let Shanghai22_Low = (shanghai_n 22).Low.time.Date.ToString()
+let Shanghai44_Low = (shanghai_n 44).Low.time.Date.ToString()
+let Shanghai66_Low = (shanghai_n 66).Low.time.Date.ToString()
 
 let last5 = LastnDayFX2File "last5" idname 5;;
 let last10 = LastnDayFX2File "last10" idname 10;; 
 let NOW = System.DateTime.Now.Date.ToString()
-let Recent = InTimeFX2File "Oct10ToNow" idname "2011-10-10" NOW
+let Recent n = InTimeFX2File "Recent66" idname n NOW
