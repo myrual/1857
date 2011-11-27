@@ -120,6 +120,13 @@ type StockStatic =
         Low2High : RecordCompare;
         Large2Now : RecordCompare;
     }
+let TopAmount (x : StockStatic) = x.TopAmount
+let LowAmount (x : StockStatic) = x.LowAmount
+let Start2Now (x : StockStatic) = x.Start2Now
+let Low2Now (x : StockStatic) = x.Low2Now
+let High2Now (x : StockStatic) = x.High2Now
+let Low2High (x : StockStatic) = x.Low2High
+let Large2Now (x : StockStatic) = x.Large2Now
 let csvcomma = ","
 let staticheader2string  = 
         let a = "Name" + csvcomma + "Trend" + csvcomma  in
