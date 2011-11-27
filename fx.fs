@@ -19,7 +19,7 @@ let GeneralFenXi idnamelist filtFunc =
     let filtHqList = List.map filtFunc hqList in
     let hq_name = List.zip filtHqList nameList in
     let static_list = List.map (fun x -> static_of (fst x) (snd x)) hq_name in
-    List.sortBy(SortByLow2HighAmp) static_list
+    List.sortBy(fun x -> amp_Of x.Start2Now) static_list
     
 
 let FenXiList2String fxlist = 
@@ -66,7 +66,8 @@ let Shanghai22_Low = (shanghai_n 22).Low.time.Date.ToString()
 let Shanghai44_Low = (shanghai_n 44).Low.time.Date.ToString()
 let Shanghai66_Low = (shanghai_n 66).Low.time.Date.ToString()
 
-let last5 = LastnDayFX2File "last5" idname 5;;
-let last10 = LastnDayFX2File "last10" idname 10;; 
+let last5 = LastnDayFX2String  idname 5;;
+let last10 = LastnDayFX2String  idname 10;; 
+let last5_10 = fx2csv "Last_5_10" (List.append last5 last10)
 let NOW = System.DateTime.Now.Date.ToString()
 let Recent n = InTimeFX2File "Recent66" idname n NOW
