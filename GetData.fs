@@ -107,6 +107,7 @@ type RecordCompare =
 let amp_Compare x = x.amp
 let amp_Of = amp_Compare
 let time_Compare x = x.time
+
 type StockStatic =
     {   Name : String;
         Trend: String ;

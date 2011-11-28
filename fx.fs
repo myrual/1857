@@ -1,18 +1,17 @@
 module public fx
 open jb
 open fq
-
-let FQHQ (stockid:string) n = 
+let FQHQ (stockid:string) n =
         let hqlist = HQ (id2string stockid) n in
         if (FqFileIsHere stockid) then List.map (FQRecordWith_FQIndexList_Oneday (GenindexlistByID stockid)) hqlist
         else hqlist
 
+let FQHQInTime id t1 t2 = (FQHQ id 0 )|>  (filtIntime t1 t2)
+let staticInTime idname t1 t2 = static_of (FQHQInTime (fst idname) t1 t2) (snd idname)
 
+let SortByLow2HighAmp  = Low2High >> amp_Of
 
-let SortByLow2HighAmp  = 
-    Low2High >> amp_Of
-
-let GeneralFenXi idnamelist filtFunc = 
+let GeneralFenXi idnamelist filtFunc =
     let hqList = List.map (fun x -> FQHQ (fst x) 0) idnamelist in
     let nameList = List.map snd idnamelist in
     let filtHqList = List.map filtFunc hqList in
@@ -21,10 +20,10 @@ let GeneralFenXi idnamelist filtFunc =
     List.sortBy(Start2Now >> amp_Of) static_list
     
 
-let FenXiList2String fxlist = 
+let FenXiList2String fxlist =
     List.map static2string  fxlist
 
-let FenXiList2StringTitle fxlist ( title :string)= 
+let FenXiList2StringTitle fxlist (title:string)=
     let fenxistring = FenXiList2String fxlist in
     List.append [ title ] fenxistring
 
@@ -56,22 +55,38 @@ let InTimeFX2File fname idnamelist t1 t2 =
         let str = InTimeFX2String idnamelist t1 t2 in
         fx2csv fname str
 
+let TrueOne x = if x then 1 else 0
 let LowFirst st1 st2 = 
-        (GetTime st1.Low).Date < (GetTime st2.Low).Date
+        (GetTime st1.Low).Date <= (GetTime st2.Low).Date
 
-let AmpGreater_Start2Now t1 t2 = 
-        (t1 |> Start2Now |> amp_Of) > (t2 |> Start2Now |> amp_Of)
+let Greater_Start2Now st1 st2 = 
+        (st1 |> Start2Now |> amp_Of) > (st2 |> Start2Now |> amp_Of)
 
-let Greater_Low2High t1 t2 = 
-        (t1 |> Low2High |> amp_Of) > (t2 |> Low2High |> amp_Of)
+let Greater_Low2High st1 st2 = 
+        (st1 |> Low2High |> amp_Of) > (st2 |> Low2High |> amp_Of)
 
-let BullThanWith a b t1 t2 opc = 
-        let static_a = (FQHQ a 0) |> (filtIntime t1 t2) |> (fun x -> static_of x a) in
-        let static_b = (FQHQ b 0) |> (filtIntime t1 t2) |> (fun x -> static_of x b) in
-        opc static_a static_b
+
+let BullThanWith a b t1 t2 = 
+        let static_a = staticInTime a t1 t2 in
+        let static_b = staticInTime b t1 t2 in
+        let s2n = Greater_Start2Now  static_a static_b in
+        let l2n = Greater_Low2High  static_a static_b in
+        let low1st = LowFirst static_a static_b in
+        (TrueOne s2n) + (TrueOne l2n) + (TrueOne low1st)
+
 let id = ["SH000001"; "B$993738"; "B$991004"; "B$991034"; "B$991019"; "B$991007"; "600718"; "600797"; "002093"; "600834"; "601857"]
 let name = ["shangzheng";  "yunjisuan";"jisuanji"; "Yousejinshu"; "meitanshiyou"; "fangdichan";"dongruan"; "zhedawangxin"; "guomaikeji"; "ShentongDitie"; "zhongguoshiyou" ]
-let idname = List.zip id name
+let sh = ("SH000001", "Shanghai")
+let yjs = ("B$993738", "Yunjisuan")
+let jsj = ("B$991004", "jisuanji")
+let ysjs = ("B$991034", "yousejinshu")
+let mtsy = ("B$991019", "meitanshiyou")
+let fdc = ("B$991007", "fangdichan")
+let drjt = ("600718", "dongruanjituan")
+let zdwx = ("600797", "zhedawangxin")
+let gmkj = ("002093", "guomaikeji")
+let stdt = ("600834", "shentongditie")
+let idname = [ sh; yjs; jsj; mtsy; fdc; drjt; zdwx; gmkj; stdt]
 
 let shanghai_n n = static_of (FQHQ "SH000001" n) "ShangHaih"
 let Shanghai22_Low = (shanghai_n 22).Low.time.Date.ToString()
