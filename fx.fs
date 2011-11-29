@@ -82,11 +82,26 @@ let jsj = ("B$991004", "jisuanji")
 let ysjs = ("B$991034", "yousejinshu")
 let mtsy = ("B$991019", "meitanshiyou")
 let fdc = ("B$991007", "fangdichan")
+let jycm = ("B$991032", "jiaoyuchuanmei")
 let drjt = ("600718", "dongruanjituan")
 let zdwx = ("600797", "zhedawangxin")
 let gmkj = ("002093", "guomaikeji")
 let stdt = ("600834", "shentongditie")
-let idname = [ sh; yjs; jsj; mtsy; fdc; drjt; zdwx; gmkj; stdt]
+let tobe = [yjs; jsj; mtsy; fdc; drjt; zdwx; gmkj; stdt]
+let idname = List.append [sh] tobe
+
+let rec quicksort idnamelist t1 t2 = 
+        if idnamelist = [] then []
+        else 
+        let hd = List.head idnamelist in
+        let tl = List.tail idnamelist in
+        let smaller = quicksort (List.filter (fun x -> (BullThanWith hd x t1 t2) <= 1) tl) t1 t2 in
+        let bigger = quicksort (List.filter (fun x -> (BullThanWith hd x t1 t2) > 1) tl) t1 t2 in
+        List.append (List.append smaller [hd]) bigger
+let BullThanSH t1 t2 a = BullThanWith a sh t1 t2
+let ListBullThanSH idnamelist t1 t2 = 
+        let bulllist = List.map (fun x -> (snd x, (BullThanSH t1 t2 x))) idnamelist in
+        List.sortBy(snd) bulllist
 
 let shanghai_n n = static_of (FQHQ "SH000001" n) "ShangHaih"
 let Shanghai22_Low = (shanghai_n 22).Low.time.Date.ToString()

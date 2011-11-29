@@ -91,8 +91,8 @@ let CalcLow2High hqlist =
 let CalcLargeAmount2Now = Some2Now MaxAmountRecord
 
 let t3int1t2 t1 t2 t3 = 
-        if t1 > t2 then (t3 < t1) && (t3 > t2)
-        else (t3 < t2) && (t3 > t1)
+        if t1 > t2 then (t3 <= t1) && (t3 >= t2)
+        else (t3 <= t2) && (t3 >= t1)
 let ElapseTime opc1 opc2 hqlist = 
         let opc1r = opc1 hqlist in
         let opc2r = opc2 hqlist in
