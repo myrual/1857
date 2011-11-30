@@ -1,0 +1,29 @@
+= what it is =
+This code is used to get statics of stock market.
+the logic behind it is here
+http://bbs.niugoo.com/viewthread.php?tid=112827&page=1&authorid=45927 
+http://bbs.niugoo.com/viewthread.php?tid=172725&page=1&authorid=45927 
+this code is based on https://github.com/myrual/shazhu_1857
+After I finish that program and use it frequently, I got more idea about
+analyze market, but it is hard to get an formula in python, c or other language.
+So I turn to Function Programming language to find better tool
+Sure FP help me a lot. 
+
+== install ==
+1. install Dazhihui.
+2. google search findata ¥Û÷«ª€ and put findata.dll into c:\windows\system32
+3. put f sharp code to system32 foldet too.
+4. open f sharp console and do following action
+#r "FinData.dll" 
+open FinData;; 
+#load "GetData.fs";; 
+open jb;; 
+#load "fq.fs";; 
+open fq;; 
+#load "fx.fs";; 
+open fx;;
+now the script can work for you
+
+== TODO ==
+Hundred of books in market were writen to tell people how to make money,
+So this tools just help user to find more more signal about market.
