@@ -131,8 +131,8 @@ let Large2Now (x : StockStatic) = x.Large2Now
 let csvcomma = ","
 let staticheader2string  = 
         let a = "Name" + csvcomma + "Trend" + csvcomma  in
-        let a1 = a + "High time" + csvcomma + "Low Time" + csvcomma in
-        let b = a1 + "TopAmount Time" + csvcomma  + "LowAmount Time" + csvcomma in
+        let a1 = a + "Hight" + csvcomma + "LowT" + csvcomma in
+        let b = a1 + "TopAmountT" + csvcomma  in
         let bb = b + "Start2Now amp" + csvcomma  + "Start2Now Time" + csvcomma in
         let c = bb + "Low2Now amp" + csvcomma  + "Low2Now Time" + csvcomma in
         let d = c + "High2Now amp" + csvcomma  + "High2Now Time" + csvcomma in
@@ -142,7 +142,7 @@ let staticheader2string  =
 let static2string (s : StockStatic) = 
         let a = s.Name + csvcomma + s.Trend + csvcomma  in
         let a1 = a + s.High.time.Date.ToString() + csvcomma + s.Low.time.Date.ToString() + csvcomma in
-        let b = a1 + s.TopAmount.time.Date.ToString() + csvcomma  + s.LowAmount.time.Date.ToString() + csvcomma in
+        let b = a1 + s.TopAmount.time.Date.ToString() + csvcomma  in
         let bb = b + (amp_Of s.Start2Now).ToString() + csvcomma  + (time_Compare s.Start2Now).ToString() + csvcomma in
         let c = bb + (amp_Of s.Low2Now).ToString() + csvcomma  + (time_Compare s.Low2Now).ToString() + csvcomma in
         let d = c + (amp_Of s.High2Now).ToString() + csvcomma  + (time_Compare s.High2Now).ToString() + csvcomma in
@@ -177,8 +177,23 @@ let timein (t1 : string) (t2 : string) (x : DayRecord) =
 
 let filtIntime t1 t2 hqlist = List.filter (timein t1 t2) hqlist
 
+let rec Pad2NWithLastnday n record_list init = 
+        if List.length init = n then init
+        else Pad2NWithLastnday n (List.tail record_list) (List.append init [(List.head record_list)])
+
+let rec Pad2NWithLastnday_reverse n record_list init = 
+        if List.length init = n then record_list
+        else Pad2NWithLastnday_reverse n (List.tail record_list) (List.append init [(List.head record_list)])
+
+let dropn n record_list = Pad2NWithLastnday_reverse n record_list []
+let rec filtLastnday1 n recordlist = Pad2NWithLastnday n recordlist []
 let rec filtLastnday n record_list = 
         match (n, record_list) with
         | (_, []) -> []
         | (0, _) -> []
         | otherwise ->List.append ([List.head record_list])  (filtLastnday (n - 1) (List.tail record_list))
+let rec dropLastnday n record_list = 
+        match (n, record_list) with
+        | (_, []) -> []
+        | (0, _) -> record_list
+        | otherwise ->dropLastnday (n - 1) (List.tail record_list)
