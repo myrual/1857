@@ -197,3 +197,6 @@ let rec dropLastnday n record_list =
         | (_, []) -> []
         | (0, _) -> record_list
         | otherwise ->dropLastnday (n - 1) (List.tail record_list)
+let filtBeforetime (t1:DayRecord) (hqlist:DayRecord list) = 
+        let endtime = (List.head (List.rev hqlist)).time.Date.ToString() in
+        filtIntime (t1.time.Date.ToString()) endtime hqlist
