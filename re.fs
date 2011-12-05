@@ -15,7 +15,7 @@ let rec FoundWave myhead hqseg n =
         let sta_myhead = static_of myhead "head" in
         let hq_afterEarlierPeak = filtBeforetime (EarlierPeak sta_myhead) (List.append myhead hqseg) in
         if fstseg = [] then List.append [sta_myhead] []
-        else if (filtLastnday n hq_afterlow) = [] then List.append [sta_myhead] []
+        else if (filtLastnday n hq_afterEarlierPeak) = [] then List.append [sta_myhead] []
         else if (OneWaveEnd myhead fstseg) then List.append [sta_myhead] (FoundWave (filtLastnday n hq_afterEarlierPeak) (dropLastnday n hq_afterEarlierPeak) n)
         else FoundWave (List.append myhead fstseg) (dropLastnday n hqseg) n
 
