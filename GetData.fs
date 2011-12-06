@@ -93,6 +93,7 @@ let CalcLargeAmount2Now = Some2Now MaxAmountRecord
 let t3int1t2 t1 t2 t3 = 
         if t1 > t2 then (t3 <= t1) && (t3 >= t2)
         else (t3 <= t2) && (t3 >= t1)
+
 let ElapseTime opc1 opc2 hqlist = 
         let opc1r = opc1 hqlist in
         let opc2r = opc2 hqlist in
@@ -120,6 +121,10 @@ type StockStatic =
         High2Now : RecordCompare;
         Low2High : RecordCompare;
         Large2Now : RecordCompare;
+    }
+type RealTime_Static = 
+    {   Aver : Double;
+        Delta : Double
     }
 let TopAmount (x : StockStatic) = x.TopAmount
 let LowAmount (x : StockStatic) = x.LowAmount
@@ -174,6 +179,10 @@ let timein (t1 : string) (t2 : string) (x : DayRecord) =
         let time2 = System.DateTime.Parse(t2) in
         let xtime = GetTime x in
         t3int1t2 time1 time2 xtime
+let beforettime (t1 : string) (x : DayRecord) = 
+        let time1 = System.DateTime.Parse(t1) in
+        let xtime = GetTime x in
+        time1 >= xtime
 
 let filtIntime t1 t2 hqlist = List.filter (timein t1 t2) hqlist
 
@@ -198,5 +207,9 @@ let rec dropLastnday n record_list =
         | (0, _) -> record_list
         | otherwise ->dropLastnday (n - 1) (List.tail record_list)
 let filtBeforetime (t1:DayRecord) (hqlist:DayRecord list) = 
-        let endtime = (List.head (List.rev hqlist)).time.Date.ToString() in
-        filtIntime (t1.time.Date.ToString()) endtime hqlist
+        let endtime = t1.time.Date.ToString() in
+        List.filter (beforettime endtime) hqlist
+
+let RemoveLast hqlist = 
+        hqlist |> List.rev |> List.tail |> List.rev
+

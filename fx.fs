@@ -1,4 +1,5 @@
 module public fx
+open System
 open jb
 open fq
 let FQHQ (stockid:string) n =
@@ -65,7 +66,20 @@ let Greater_Start2Now st1 st2 =
 let Greater_Low2High st1 st2 = 
         (st1 |> Low2High |> amp_Of) > (st2 |> Low2High |> amp_Of)
 
+/// hqlist is an FIFO list, earlier record is on head, later is on tail
+let Delta hqlist =
+        if hqlist = [] then (0.0, (0.0, 0.0))
+        else
+        let aver = List.averageBy GetEnd hqlist in
+        let delta1 = List.sumBy (fun x-> Math.Pow((GetEnd x) - aver, 2.0)) hqlist in
+        let delta2 = Math.Sqrt(delta1/(Convert.ToDouble(List.length hqlist) - 1.0)) in
+        (aver, (aver + delta2*2.0, aver - delta2*2.0))
 
+/// hqlist is earlier data first, later data last
+let WithBoll efirsthq n = 
+        let lfirsthql = List.rev efirsthq in
+        let filtn4delta (x:DayRecord) = List.rev (filtLastnday n (filtBeforetime x  lfirsthql)) in
+        List.map (fun x->(GetEnd x, Delta (filtn4delta x))) efirsthq
 let BullThanWith a b t1 t2 = 
         let static_a = staticInTime a t1 t2 in
         let static_b = staticInTime b t1 t2 in
