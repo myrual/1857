@@ -67,19 +67,22 @@ let Greater_Low2High st1 st2 =
         (st1 |> Low2High |> amp_Of) > (st2 |> Low2High |> amp_Of)
 
 /// hqlist is an FIFO list, earlier record is on head, later is on tail
-let Delta hqlist =
+let Bolling hqlist =
         if hqlist = [] then (0.0, (0.0, 0.0))
         else
         let aver = List.averageBy GetEnd hqlist in
         let delta1 = List.sumBy (fun x-> Math.Pow((GetEnd x) - aver, 2.0)) hqlist in
-        let delta2 = Math.Sqrt(delta1/(Convert.ToDouble(List.length hqlist) - 1.0)) in
-        (aver, (aver + delta2*2.0, aver - delta2*2.0))
+        let std = Math.Sqrt(delta1/(Convert.ToDouble(List.length hqlist) - 1.0)) in
+        let Boll_UB = aver + std*2.0 in
+        let Boll_LB = aver - std*2.0 in
+        let BollingBand = (Boll_UB, Boll_LB) in
+        (aver, BollingBand)
 
 /// hqlist is earlier data first, later data last
-let WithBoll efirsthq n = 
-        let lfirsthql = List.rev efirsthq in
-        let filtn4delta (x:DayRecord) = List.rev (filtLastnday n (filtBeforetime x  lfirsthql)) in
-        List.map (fun x->(GetEnd x, Delta (filtn4delta x))) efirsthq
+let Boll first_lasthq n = 
+        let last_firsthq = List.rev first_lasthq in
+        let filtn4delta (x:DayRecord) = List.rev (filtLastnday n (filtBeforetime x  last_firsthq)) in
+        List.map (fun x->(GetEnd x, Bolling (filtn4delta x))) first_lasthq
 let BullThanWith a b t1 t2 = 
         let static_a = staticInTime a t1 t2 in
         let static_b = staticInTime b t1 t2 in
