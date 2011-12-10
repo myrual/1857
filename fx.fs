@@ -127,10 +127,16 @@ let Shanghai66_Low = (shanghai_n 66).Low.time.Date.ToString()
 
 let NOW = System.DateTime.Now.Date.ToString()
 let Recent n = InTimeFX2File "Recent_n" idname n NOW
+        
 
+let load_func_close func_close openday hqlist= 
+        if (filtaftertime openday hqlist) = [] then false
+        else (func_close openday hqlist)
 
-let HighReturn idname start now = 
-        let sta = staticInTime idname start now in
-        let sta_high2now = staticInTime idname (sta.High.time.ToString()) now in
-        if sta.Trend = "Bull" then sta_high2now |> Low2High |> amp_Of
-        else 0.01
+let rec Verify func_open func_close hqlist = 
+        if hqlist = [] then []
+        else
+        let openday = List.find (fun x -> func_open (filtBeforetime x hqlist)) hqlist in
+        let this_close = load_func_close func_close in
+        let closeday = List.find (fun x-> this_close openday (filtBeforetime x hqlist)) hqlist in
+        List.append [openday; closeday] (Verify func_open func_close (filtaftertime closeday hqlist))

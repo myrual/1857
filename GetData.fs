@@ -179,10 +179,14 @@ let timein (t1 : string) (t2 : string) (x : DayRecord) =
         let time2 = System.DateTime.Parse(t2) in
         let xtime = GetTime x in
         t3int1t2 time1 time2 xtime
-let beforettime (t1 : string) (x : DayRecord) = 
+let beforetime (t1 : string) (x : DayRecord) = 
         let time1 = System.DateTime.Parse(t1) in
         let xtime = GetTime x in
         time1 >= xtime
+let aftertime (t1 : string) (x : DayRecord) = 
+        let time1 = System.DateTime.Parse(t1) in
+        let xtime = GetTime x in
+        time1 <= xtime
 
 let filtIntime t1 t2 hqlist = List.filter (timein t1 t2) hqlist
 
@@ -208,7 +212,10 @@ let rec dropLastnday n record_list =
         | otherwise ->dropLastnday (n - 1) (List.tail record_list)
 let filtBeforetime (t1:DayRecord) (hqlist:DayRecord list) = 
         let endtime = t1.time.Date.ToString() in
-        List.filter (beforettime endtime) hqlist
+        List.filter (beforetime endtime) hqlist
+let filtaftertime (t1:DayRecord) (hqlist:DayRecord list) = 
+        let endtime = t1.time.Date.ToString() in
+        List.filter (aftertime endtime) hqlist
 
 let RemoveLast hqlist = 
         hqlist |> List.rev |> List.tail |> List.rev
