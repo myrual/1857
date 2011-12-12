@@ -8,6 +8,8 @@ let FQHQ (stockid:string) n =
         else hqlist
 
 let FQHQInTime id t1 t2 = (FQHQ id 0 )|>  (filtIntime t1 t2)
+let FQHQBeforeTime id t1 = (FQHQ id 0 )|>  (List.filter (beforetime t1))
+let FQHQAfterTime id t1 = (FQHQ id 0 )|>  (List.filter (aftertime t1))
 let staticInTime idname t1 t2 = static_of (FQHQInTime (fst idname) t1 t2) (snd idname)
 
 let SortByLow2HighAmp  = Low2High >> amp_Of
