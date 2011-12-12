@@ -128,29 +128,39 @@ let Shanghai66_Low = (shanghai_n 66).Low.time.Date.ToString()
 let NOW = System.DateTime.Now.Date.ToString()
 let Recent n = InTimeFX2File "Recent_n" idname n NOW
         
+let VerifyPressline (k,d) hqlist = 
+        let hd = List.head hqlist in
+        not (List.exists (fun x -> (k*(System.Convert.ToDouble(TimeDiff hd x hqlist)) + d) < (GetEnd x)) hqlist)
 
-let demo_open hqlist = 
-        if hqlist = [] then false
-        else
-        let lastday = hqlist |> List.rev |> List.head in
-        GetEnd lastday < 2390.0
-let demo_close openday hqlist = 
-        let openprice = GetEnd openday in
-        let lastday = hqlist |> List.rev |> List.head in
-        let lastday_price = GetEnd lastday in
-        (lastday_price - openprice) > 20.0
-let load_func_close func_close openday hqlist= 
-        if (filtaftertime openday hqlist) = [] then false
-        else (func_close openday hqlist)
+let VerifyPressline_Up (k,d) hqlist = 
+        let hd = List.head hqlist in
+        not (List.exists (fun x -> (k*(System.Convert.ToDouble(TimeDiff hd x hqlist)) + d) > (GetEnd x)) hqlist)
+let GetKDFrom x1 x2 hqlist = 
+        let deltax = TimeDiff x1 x2 hqlist in
+        let deltay = (GetEnd x2) - (GetEnd x1) in
+        let k = deltay/System.Convert.ToDouble(deltax) in
+        let d = (GetEnd x2) - (k * System.Convert.ToDouble(deltax)) in
+        (k, d)
 
-let rec Verify func_open func_close wholehqlist tofindhqlist = 
-        if tofindhqlist = [] then []
-        else if wholehqlist = [] then []
-        else if (List.exists (fun x -> func_open (filtBeforetime x wholehqlist)) tofindhqlist) then 
-                let openday = List.find (fun x -> func_open (filtBeforetime x wholehqlist)) tofindhqlist in
-                let this_close = load_func_close func_close openday in
-                if (List.exists (fun x-> this_close (filtBeforetime x wholehqlist)) tofindhqlist) then 
-                        let closeday = List.find (fun x-> this_close (filtBeforetime x wholehqlist)) tofindhqlist in
-                        List.append [openday; closeday] (Verify func_open func_close wholehqlist (filtaftertime closeday tofindhqlist))
-                else List.append [openday] []
-             else []
+let FoundKD hqlist peak_func verify = 
+        let high = peak_func hqlist in
+        let afterhigh = filtaftertime high hqlist in
+        let tail_after_high = List.tail afterhigh in
+        let matched = List.find (fun x -> verify (GetKDFrom high x tail_after_high) tail_after_high) tail_after_high in
+        GetKDFrom high matched hqlist in
+let FoundKD_Down = (fun x -> FoundKD x MaxEndpRecord VerifyPressline)
+let FoundKD_Up = (fun x -> FoundKD x MinEndpRecord VerifyPressline_Up)
+
+let rec Calcbykdxi (k,d) initx n = 
+        if n = 0 then []
+        else List.append [k*initx + d] (Calcbykdxi (k,d) (initx+1.0) (n-1))
+
+let CalcUpDown hqlist n foundkd peak = 
+        let kd = foundkd hqlist in
+        let low = peak hqlist in
+        let latest = FindLatestRecord hqlist in
+        let lowtonow = TimeDiff low latest hqlist in
+        Calcbykdxi kd (System.Convert.ToDouble(lowtonow)) n
+
+let CalcDown hqlist n = CalcUpDown hqlist n FoundKD_Down MaxEndpRecord
+let CalcUp hqlist n = CalcUpDown hqlist n FoundKD_Up MinEndpRecord

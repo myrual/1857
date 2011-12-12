@@ -72,6 +72,7 @@ let MinPriceRecord = FoundPeak (ByLess GetEnd)
 let MaxEndpRecord = FoundPeak (ByGreater GetEnd)
 let MaxHighRecord = FoundPeak (ByGreater GetHigh)
 let MinLowRecord = FoundPeak (ByLess GetLow)
+let MinEndpRecord = MinPriceRecord
 let MinAmountRecord = FoundPeak (ByLess GetAmount)
 let MaxAmountRecord = FoundPeak (ByGreater GetAmount)
 let StartRecord hqlist = List.head (List.rev hqlist)
@@ -82,7 +83,7 @@ let CalcLow2Now = Some2Now MinPriceRecord
 let CalcHigh2Now = Some2Now MaxEndpRecord
 let BullBear hqlist = 
         let maxr = MaxEndpRecord hqlist in
-        let minr = MinLowRecord hqlist in 
+        let minr = MinEndpRecord hqlist in 
         if maxr.time > minr.time then "Bull" else " Bear"
 let CalcLow2High hqlist = 
     let amp = TwoTimeEndPriceAmp MaxEndpRecord MinPriceRecord hqlist in
@@ -94,13 +95,17 @@ let t3int1t2 t1 t2 t3 =
         if t1 > t2 then (t3 <= t1) && (t3 >= t2)
         else (t3 <= t2) && (t3 >= t1)
 
+let TimeDiff x1 x2 hqlist = 
+        let t1 = GetTime x1 in
+        let t2 = GetTime x2 in
+        let filteredlist = List.filter (fun x -> t3int1t2 t1 t2 (GetTime x)) hqlist in
+        List.length filteredlist
+
 let ElapseTime opc1 opc2 hqlist = 
         let opc1r = opc1 hqlist in
         let opc2r = opc2 hqlist in
-        let t1 = GetTime opc1r in
-        let t2 = GetTime opc2r in
-        let filteredlist = List.filter (fun x -> t3int1t2 t1 t2 (GetTime x)) hqlist in
-        List.length filteredlist
+        TimeDiff opc1r opc2r hqlist
+
 type RecordCompare = 
     {   amp : Double;
         time: int;
@@ -154,23 +159,24 @@ let static2string (s : StockStatic) =
         let e = d +  (amp_Of s.Low2High).ToString() + csvcomma + (time_Compare s.Low2High).ToString() + csvcomma in
         e + (amp_Of s.Large2Now).ToString() + csvcomma + (time_Compare s.Large2Now).ToString() + "\n"
         
+let FindLatestRecord  = (fun x -> List.maxBy GetTime x)
 let static_of hq name = 
     {   Name = name
         Trend = BullBear hq;
         High = MaxEndpRecord hq;
-        Low = MinLowRecord hq;
+        Low = MinEndpRecord hq;
         TopAmount = MaxAmountRecord hq;
         LowAmount = MinAmountRecord hq;
         Start2Now = {amp = CalcStart2Now hq;
                         time = List.length hq}
         Low2Now = { amp = CalcLow2Now hq;
-                        time = ElapseTime List.head MinLowRecord hq}
+                        time = ElapseTime FindLatestRecord MinEndpRecord hq}
         High2Now = { amp = CalcHigh2Now hq;
-                        time = ElapseTime List.head MaxEndpRecord hq}
+                        time = ElapseTime FindLatestRecord MaxEndpRecord hq}
         Low2High = { amp = CalcLow2High hq;
-                        time = ElapseTime MaxEndpRecord MinLowRecord hq}
+                        time = ElapseTime MaxEndpRecord MinEndpRecord hq}
         Large2Now = { amp = CalcLargeAmount2Now hq;
-                        time = ElapseTime List.head MaxAmountRecord hq}
+                        time = ElapseTime FindLatestRecord MaxAmountRecord hq}
     }
 
 
