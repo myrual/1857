@@ -79,7 +79,9 @@ let Bolling hqlist =
         let Boll_LB = aver - std*2.0 in
         let BollingBand = (Boll_UB, Boll_LB) in
         (aver, BollingBand)
-
+let GetBollLB  = (fun x -> x|> snd |> snd)
+let GetBollUB  = (fun x -> x|> snd |> fst)
+let Average_Boll  = fst
 /// hqlist is earlier data first, later data last
 let Boll first_lasthq n = 
         let last_firsthq = List.rev first_lasthq in
