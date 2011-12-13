@@ -19,7 +19,8 @@ let func_CloseWrong openday hqlist rate =
         let NowWrong = latestRecordprice < openprice in
         let NeedClose = ((openprice - latestRecordprice)/openprice > rate) in
         NowWrong && NeedClose
-let func_CloseCorrect openday hqlist n = 
+let func_CloseCorrect openday allhqlist n = 
+        let hqlist = filtaftertime openday allhqlist in
         let latestRecordprice = hqlist |> FindLatestRecord |> GetEnd in
         let topprice = hqlist |> MaxEndpRecord |> GetEnd in
         let openprice = GetEnd openday in
@@ -58,7 +59,7 @@ let load_func_close func_close openday hqlist=
         if (filtaftertime openday hqlist) = [] then false
         else (func_close openday hqlist)
 
-let rec Verify func_open func_close func_summary wholehqlist tofindhqlist = 
+let rec VerifyByTwoList func_open func_close func_summary wholehqlist tofindhqlist = 
         if tofindhqlist = [] then []
         else if wholehqlist = [] then []
         else if (List.exists (fun x -> func_open (filtBeforetime x wholehqlist)) tofindhqlist) then 
@@ -66,6 +67,15 @@ let rec Verify func_open func_close func_summary wholehqlist tofindhqlist =
                 let this_close = load_func_close func_close openday in
                 if (List.exists (fun x-> this_close (filtBeforetime x wholehqlist)) tofindhqlist) then 
                         let closeday = List.find (fun x-> this_close (filtBeforetime x wholehqlist)) tofindhqlist in
-                        List.append [(func_summary openday closeday)] (Verify func_open func_close func_summary wholehqlist (filtaftertime closeday tofindhqlist))
+                        List.append [(func_summary openday closeday)] (VerifyByTwoList func_open func_close func_summary wholehqlist (filtaftertime closeday tofindhqlist))
                 else []
              else []
+let Verify func_open func_close func_summary wholehqlist = VerifyByTwoList func_open func_close func_summary wholehqlist wholehqlist
+let explainResult (tradelist : ((float * 'a) list)) = 
+        let earn = List.filter (fun x-> (fst x) > 0.0) tradelist in
+        let loss = List.filter (fun x-> (fst x) < 0.0) tradelist in
+        let earntime = List.length earn in
+        let losstime = List.length loss in
+        let totalearn = List.sumBy fst earn in
+        let totalloss = List.sumBy fst loss in
+        ((totalearn, earntime), (totalloss, losstime))
