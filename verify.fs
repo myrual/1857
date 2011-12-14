@@ -17,27 +17,27 @@ let func_CloseWrong openday hqlist rate =
         let latestRecordprice = hqlist |> FindLatestRecord |> GetEnd in
         let openprice = GetEnd openday in
         let NowWrong = latestRecordprice < openprice in
-        let NeedClose = ((openprice - latestRecordprice)/openprice > rate) in
-        NowWrong && NeedClose
-let func_CloseCorrect openday allhqlist n = 
+        if NowWrong then  (((openprice - latestRecordprice)/openprice) > rate)
+        else false
+let func_CloseCorrect openday allhqlist minUP n= 
         let hqlist = filtaftertime openday allhqlist in
         let latestRecordprice = hqlist |> FindLatestRecord |> GetEnd in
         let topprice = hqlist |> MaxEndpRecord |> GetEnd in
         let openprice = GetEnd openday in
-        let benchmarkprice = (topprice - openprice)/2.0 + openprice in
-        latestRecordprice < benchmarkprice
+        let benchmarkprice = (topprice - openprice)/n + openprice in
+        (latestRecordprice < benchmarkprice) && ((topprice - openprice)/openprice > minUP)
 let func_Open2NowLessThan openday hqlist n = 
         let open2now = filtaftertime openday hqlist in
         let len_open2now = List.length open2now in
         len_open2now < n
-let NearBollLBClose openday hqlist = 
+let NearBollLBClose stoploss stopearn openday hqlist = 
         let wrongcloseBy = func_CloseWrong openday hqlist in
         let open2NowLess = func_Open2NowLessThan openday hqlist in
-        let closecorrect = func_CloseCorrect openday hqlist in
+        let closecorrect = func_CloseCorrect openday hqlist stoploss in
         if ((List.length hqlist) < 20) then false
         else if (open2NowLess 3) then false
-        else if (wrongcloseBy 0.05) then true
-        else if (closecorrect 2.0) then true
+        else if (wrongcloseBy stoploss) then true
+        else if (closecorrect stopearn) then true
         else false
 let demo_open hqlist = 
         if hqlist = [] then false
@@ -59,14 +59,16 @@ let load_func_close func_close openday hqlist=
         if (filtaftertime openday hqlist) = [] then false
         else (func_close openday hqlist)
 
+let FoundBy this_func wholehqlist tofindhqlist =  List.exists (fun x-> this_func (filtBeforetime x wholehqlist)) tofindhqlist
+let GetBy   this_func wholehqlist tofindhqlist =  List.find   (fun x-> this_func (filtBeforetime x wholehqlist)) tofindhqlist
 let rec VerifyByTwoList func_open func_close func_summary wholehqlist tofindhqlist = 
         if tofindhqlist = [] then []
         else if wholehqlist = [] then []
-        else if (List.exists (fun x -> func_open (filtBeforetime x wholehqlist)) tofindhqlist) then 
-                let openday = List.find (fun x -> func_open (filtBeforetime x wholehqlist)) tofindhqlist in
+        else if (FoundBy func_open wholehqlist tofindhqlist) then 
+                let openday = GetBy func_open wholehqlist tofindhqlist in
                 let this_close = load_func_close func_close openday in
-                if (List.exists (fun x-> this_close (filtBeforetime x wholehqlist)) tofindhqlist) then 
-                        let closeday = List.find (fun x-> this_close (filtBeforetime x wholehqlist)) tofindhqlist in
+                if (FoundBy this_close wholehqlist tofindhqlist) then 
+                        let closeday = (GetBy this_close wholehqlist tofindhqlist) in
                         List.append [(func_summary openday closeday)] (VerifyByTwoList func_open func_close func_summary wholehqlist (filtaftertime closeday tofindhqlist))
                 else []
              else []
@@ -79,3 +81,5 @@ let explainResult (tradelist : ((float * 'a) list)) =
         let totalearn = List.sumBy fst earn in
         let totalloss = List.sumBy fst loss in
         ((totalearn, earntime), (totalloss, losstime))
+let bollverify loss win = Verify NearBollLBOpen (NearBollLBClose  loss win) demo_summary
+let compare_matrix hqlist matrix = List.map (fun x-> explainResult (bollverify (fst x) (snd x) hqlist)) matrix
