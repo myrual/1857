@@ -159,7 +159,7 @@ let static2string (s : StockStatic) =
         let e = d +  (amp_Of s.Low2High).ToString() + csvcomma + (time_Compare s.Low2High).ToString() + csvcomma in
         e + (amp_Of s.Large2Now).ToString() + csvcomma + (time_Compare s.Large2Now).ToString() + "\n"
         
-let FindLatestRecord  = (fun x -> List.maxBy GetTime x)
+let FindLatestRecord  hqlist = (fun x -> List.maxBy GetTime x) hqlist
 let static_of hq name = 
     {   Name = name
         Trend = BullBear hq;

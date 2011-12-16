@@ -3,10 +3,33 @@ open System
 open jb
 open fq
 open fx
+
+
+let CalEndByHour (x: DayRecord) hour =
+        if (hour < 11.0) then x.start
+        else if (hour > 14.5) then x.endp
+        else if (hour < 12.0) then ((x.endp-x.start)/2.0 + x.start)
+        else (3.0 * (x.endp-x.start) / 4.0 + x.start)
+let CopyWithHour (x:DayRecord) hour= 
+        { time = x.time.AddHours(hour);
+            start = x.start;
+            high = x.high;
+            low = x.low;
+            endp = (CalEndByHour x hour);
+            volume = x.volume;
+            amount = x.amount;
+        }
+let OneFour (x) = [(CopyWithHour x 10.5); (CopyWithHour x 11.5); (CopyWithHour x 14.0); (CopyWithHour x 15.0)]
+let rec OneFourS (hqlist) = 
+        if hqlist = [] then []
+        else
+        let hd = List.head hqlist in
+        let tl = List.tail hqlist in
+        List.append (OneFour hd) (OneFourS tl)
 let NearBollLBOpen hqlist = 
-        let latestRecordprice = hqlist |> FindLatestRecord |> GetEnd in
         if (List.length hqlist) < 20 then false
         else
+        let latestRecordprice = hqlist |> FindLatestRecord |> GetEnd in
         let currentbolling =  Bolling hqlist in
         let ave = (Average_Boll currentbolling) in
         let lb = GetBollLB currentbolling in
@@ -82,4 +105,7 @@ let explainResult (tradelist : ((float * 'a) list)) =
         let totalloss = List.sumBy fst loss in
         ((totalearn, earntime), (totalloss, losstime))
 let bollverify loss win = Verify NearBollLBOpen (NearBollLBClose  loss win) demo_summary
+let SHbyTime startt endt = FQHQInTime "SH000001" startt endt
+let SHBollInShort loss win startt endt = bollverify loss win ((SHbyTime startt endt) |> OneFourS |> List.rev)
+let SHBollIn loss win startt endt = bollverify loss win ((SHbyTime startt endt) |> List.rev)
 let compare_matrix hqlist matrix = List.map (fun x-> explainResult (bollverify (fst x) (snd x) hqlist)) matrix
