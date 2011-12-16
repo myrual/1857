@@ -150,8 +150,10 @@ let FoundKD hqlist peak_func verify =
         let high = peak_func hqlist in
         let afterhigh = filtaftertime high hqlist in
         let tail_after_high = List.tail afterhigh in
-        let matched = List.find (fun x -> verify (GetKDFrom high x tail_after_high) tail_after_high) tail_after_high in
-        GetKDFrom high matched hqlist in
+        if List.exists (fun x -> verify (GetKDFrom high x tail_after_high) tail_after_high) tail_after_high then
+                let matched = List.find (fun x -> verify (GetKDFrom high x tail_after_high) tail_after_high) tail_after_high in
+                GetKDFrom high matched hqlist
+        else (0.0, 0.0)
 let FoundKD_Down = (fun x -> FoundKD x MaxEndpRecord VerifyPressline)
 let FoundKD_Up = (fun x -> FoundKD x MinEndpRecord VerifyPressline_Up)
 
