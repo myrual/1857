@@ -36,7 +36,7 @@ let LBOpen latestRecordprice currentbolling =
 let UBOpen latestRecordprice currentbolling = 
         let ave = (Average_Boll currentbolling) in
         let ub = GetBollUB currentbolling in
-        let OnWave = (ub - ave) * 0.75 + ave
+        let OnWave = (ub - ave) * 0.5 + ave
         (latestRecordprice > OnWave)
 
 let NearBollLBOpen hqlist = 
@@ -70,11 +70,11 @@ let func_CloseWrong1 func_WrongNeedClose openday hqlist rate =
         let latestRecordprice = hqlist |> FindLatestRecord |> GetEnd in
         let openprice = GetEnd openday in
         func_WrongNeedClose openprice latestRecordprice rate
-let BearOpenCorrect_NeedClose openprice hqlist n minUP = 
+let BearOpenCorrect_NeedClose openprice hqlist minUP n= 
         let latestRecordprice = hqlist |> FindLatestRecord |> GetEnd in
-        let bottom_price = hqlist |> MinEndpRecord |> GetEnd in
-        let benchmarkprice = openprice - (openprice - bottom_price)/n  in
-        (latestRecordprice > benchmarkprice) && ((openprice - bottom_price)/openprice > minUP)
+        let bottom_price = hqlist |> MinPriceRecord |> GetEnd in
+        let benchmarkprice = bottom_price + (openprice - bottom_price)/n  in
+        (latestRecordprice > benchmarkprice) && ((openprice - bottom_price)/bottom_price > minUP)
 
 let BullOpenCorrect_NeedClose openprice hqlist minUP n = 
         let latestRecordprice = hqlist |> FindLatestRecord |> GetEnd in
@@ -87,6 +87,14 @@ let func_CloseCorrect_Bear openday allhqlist minUP n=
         let hqlist = filtaftertime openday allhqlist in
         let openprice = GetEnd openday in
         BearOpenCorrect_NeedClose openprice hqlist n minUP
+let func_Open2NowLessThan openday hqlist n = 
+        let open2now = filtaftertime openday hqlist in
+        let len_open2now = List.length open2now in
+        len_open2now < n
+let func_CloseCorrect1 func_CorrectNeedClose openday allhqlist minUP n= 
+        let hqlist = filtaftertime openday allhqlist in
+        let openprice = GetEnd openday in
+        func_CorrectNeedClose openprice hqlist minUP n
 
 let TwoBClose_Bear stoploss stopearn openday hqlist = 
         let wrongcloseBy = func_CloseWrong1 BearOpenwrong_NeedClose openday hqlist in
@@ -118,14 +126,7 @@ let func_CloseCorrect openday allhqlist minUP n=
         let benchmarkprice = (topprice - openprice)/n + openprice in
         (latestRecordprice < benchmarkprice) && ((topprice - openprice)/openprice > minUP)
 
-let func_CloseCorrect1 func_CorrectNeedClose openday allhqlist minUP n= 
-        let hqlist = filtaftertime openday allhqlist in
-        let openprice = GetEnd openday in
-        func_CorrectNeedClose openprice hqlist minUP n
-let func_Open2NowLessThan openday hqlist n = 
-        let open2now = filtaftertime openday hqlist in
-        let len_open2now = List.length open2now in
-        len_open2now < n
+
 let NearBollLBClose stoploss stopearn openday hqlist = 
         let wrongcloseBy = func_CloseWrong1 BullOpenwrong_NeedClose openday hqlist in
         let open2NowLess = func_Open2NowLessThan openday hqlist in
@@ -158,6 +159,9 @@ let demo_close openday hqlist =
 let demo_summary openday closeday = 
         let profit = (GetEnd closeday) - (GetEnd openday) in
         (profit, (openday, closeday))
+let demo_summary_bear openday closeday = 
+        let profit = (GetEnd openday) - (GetEnd closeday) in
+        (profit, (openday, closeday))
 
 let profitOf = fst
 
@@ -188,7 +192,7 @@ let explainResult (tradelist : ((float * 'a) list)) =
         let totalloss = List.sumBy fst loss in
         ((totalearn, earntime), (totalloss, losstime))
 let bollverify loss win = Verify NearBollLBOpen (NearBollLBClose  loss win) demo_summary
-let bollverifyBear loss win = Verify NearBollUBOpen (NearBollUBClose  loss win) demo_summary
+let bollverifyBear loss win = Verify NearBollUBOpen (NearBollUBClose  loss win) demo_summary_bear
 let SHbyTime startt endt = FQHQInTime "SH000001" startt endt
 let SHBollInShort loss win startt endt = bollverify loss win ((SHbyTime startt endt) |> OneFourS |> List.rev)
 let SHBollIn loss win startt endt = bollverify loss win ((SHbyTime startt endt) |> List.rev)
