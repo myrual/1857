@@ -39,19 +39,15 @@ let UBOpen latestRecordprice currentbolling =
         let OnWave = (ub - ave) * 0.5 + ave
         (latestRecordprice > OnWave)
 
-let NearBollLBOpen hqlist = 
+let NearBollOpenWith func_open hqlist = 
         if (List.length hqlist) < 20 then false
         else
         let latestRecordprice = hqlist |> FindLatestRecord |> GetEnd in
         let currentbolling =  Bolling hqlist in
-        LBOpen latestRecordprice currentbolling
+        func_open latestRecordprice currentbolling
 
-let NearBollUBOpen hqlist = 
-        if (List.length hqlist) < 20 then false
-        else
-        let latestRecordprice = hqlist |> FindLatestRecord |> GetEnd in
-        let currentbolling =  Bolling hqlist in
-        UBOpen latestRecordprice currentbolling
+let NearBollLBOpen = NearBollOpenWith LBOpen
+let NearBollUBOpen = NearBollOpenWith UBOpen
 
 let TwoBOpen_Bear hqlist = 
         if (List.length hqlist) < 20 then false
@@ -66,7 +62,7 @@ let BearOpenwrong_NeedClose  openprice latestRecordprice rate =
         let NowWrong = latestRecordprice > openprice in
         if NowWrong then  (((latestRecordprice - openprice)/openprice) > rate)
         else false
-let func_CloseWrong1 func_WrongNeedClose openday hqlist rate = 
+let func_CloseWrongBy func_WrongNeedClose openday hqlist rate = 
         let latestRecordprice = hqlist |> FindLatestRecord |> GetEnd in
         let openprice = GetEnd openday in
         func_WrongNeedClose openprice latestRecordprice rate
@@ -83,23 +79,19 @@ let BullOpenCorrect_NeedClose openprice hqlist minUP n =
         (latestRecordprice < benchmarkprice) && ((top_price - openprice)/openprice > minUP)
 
 
-let func_CloseCorrect_Bear openday allhqlist minUP n= 
-        let hqlist = filtaftertime openday allhqlist in
-        let openprice = GetEnd openday in
-        BearOpenCorrect_NeedClose openprice hqlist n minUP
 let func_Open2NowLessThan openday hqlist n = 
         let open2now = filtaftertime openday hqlist in
         let len_open2now = List.length open2now in
         len_open2now < n
-let func_CloseCorrect1 func_CorrectNeedClose openday allhqlist minUP n= 
+let func_CloseCorrectBy func_CorrectNeedClose openday allhqlist minUP n= 
         let hqlist = filtaftertime openday allhqlist in
         let openprice = GetEnd openday in
         func_CorrectNeedClose openprice hqlist minUP n
 
 let TwoBClose_Bear stoploss stopearn openday hqlist = 
-        let wrongcloseBy = func_CloseWrong1 BearOpenwrong_NeedClose openday hqlist in
+        let wrongcloseBy = func_CloseWrongBy BearOpenwrong_NeedClose openday hqlist in
         let open2NowLess = func_Open2NowLessThan openday hqlist in
-        let closecorrect = func_CloseCorrect1 BearOpenCorrect_NeedClose openday hqlist stoploss in
+        let closecorrect = func_CloseCorrectBy BearOpenCorrect_NeedClose openday hqlist stoploss in
         if ((List.length hqlist) < 20) then false
         else if (open2NowLess 3) then false
         else if (wrongcloseBy stoploss) then true
@@ -107,13 +99,6 @@ let TwoBClose_Bear stoploss stopearn openday hqlist =
         else false
 
 let BullOpenwrong_NeedClose openprice latestRecordprice rate = 
-        let NowWrong = latestRecordprice < openprice in
-        if NowWrong then  (((openprice - latestRecordprice)/openprice) > rate)
-        else false
-
-let func_CloseWrong openday hqlist rate = 
-        let latestRecordprice = hqlist |> FindLatestRecord |> GetEnd in
-        let openprice = GetEnd openday in
         let NowWrong = latestRecordprice < openprice in
         if NowWrong then  (((openprice - latestRecordprice)/openprice) > rate)
         else false
@@ -127,43 +112,25 @@ let func_CloseCorrect openday allhqlist minUP n=
         (latestRecordprice < benchmarkprice) && ((topprice - openprice)/openprice > minUP)
 
 
-let NearBollLBClose stoploss stopearn openday hqlist = 
-        let wrongcloseBy = func_CloseWrong1 BullOpenwrong_NeedClose openday hqlist in
-        let open2NowLess = func_Open2NowLessThan openday hqlist in
-        let closecorrect = func_CloseCorrect1 BullOpenCorrect_NeedClose openday hqlist stoploss in
-        if ((List.length hqlist) < 20) then false
-        else if (open2NowLess 3) then false
-        else if (wrongcloseBy stoploss) then true
-        else if (closecorrect stopearn) then true
-        else false
 
-let NearBollUBClose stoploss stopearn openday hqlist = 
-        let wrongcloseBy = func_CloseWrong1 BearOpenwrong_NeedClose openday hqlist in
+let General_Close func_CloseWrong func_CloseCorrect stoploss stopearn openday hqlist =
+        let wrongcloseBy = func_CloseWrongBy func_CloseWrong openday hqlist in
         let open2NowLess = func_Open2NowLessThan openday hqlist in
-        let closecorrect = func_CloseCorrect1 BearOpenCorrect_NeedClose openday hqlist stoploss in
+        let closecorrect = func_CloseCorrectBy func_CloseCorrect openday hqlist stoploss in
         if ((List.length hqlist) < 20) then false
         else if (open2NowLess 3) then false
         else if (wrongcloseBy stoploss) then true
         else if (closecorrect stopearn) then true
         else false
-let demo_open hqlist = 
-        if hqlist = [] then false
-        else
-        let lastday = hqlist |> List.rev |> List.head in
-        GetEnd lastday < 2390.0
-let demo_close openday hqlist = 
-        let openprice = GetEnd openday in
-        let lastday = hqlist |> List.rev |> List.head in
-        let lastday_price = GetEnd lastday in
-        (lastday_price - openprice) > 20.0
+let NearBollLBClose = General_Close BullOpenwrong_NeedClose BullOpenCorrect_NeedClose 
+let NearBollUBClose = General_Close BearOpenwrong_NeedClose BearOpenCorrect_NeedClose
+
 let demo_summary openday closeday = 
         let profit = (GetEnd closeday) - (GetEnd openday) in
         (profit, (openday, closeday))
 let demo_summary_bear openday closeday = 
         let profit = (GetEnd openday) - (GetEnd closeday) in
         (profit, (openday, closeday))
-
-let profitOf = fst
 
 let load_func_close func_close openday hqlist= 
         if (filtaftertime openday hqlist) = [] then false
