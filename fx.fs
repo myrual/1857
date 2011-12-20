@@ -146,10 +146,14 @@ let GetKDFrom x1 x2 hqlist =
         let d = (GetEnd x2) - (k * System.Convert.ToDouble(deltax)) in
         (k, d)
 
-let FoundKD hqlist peak_func verify = 
+let ForcetoNatureHQlist (hqlist:DayRecord list) = 
+        let head = List.head hqlist in
+        let second = List.head (List.tail hqlist) in
+        if head.time > second.time then List.rev hqlist
+        else hqlist
+let FoundKD (hqlist: DayRecord list) peak_func verify = 
         let high = peak_func hqlist in
-        let afterhigh = filtaftertime high hqlist in
-        let tail_after_high = List.tail afterhigh in
+        let tail_after_high = List.tail(filtaftertime high (ForcetoNatureHQlist(hqlist))) in
         if List.exists (fun x -> verify (GetKDFrom high x tail_after_high) tail_after_high) tail_after_high then
                 let matched = List.find (fun x -> verify (GetKDFrom high x tail_after_high) tail_after_high) tail_after_high in
                 GetKDFrom high matched hqlist
