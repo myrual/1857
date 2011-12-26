@@ -49,20 +49,14 @@ let NearBollOpenWith func_open hqlist =
 let NearBollLBOpen = NearBollOpenWith LBOpen
 let NearBollUBOpen = NearBollOpenWith UBOpen
 
-let TwoBOpenWith70 distance2B today hqlist = 
-        let latest70_static =  static_of (hqlist |> List.rev |> (filtLastnday 70) |> List.rev) "demo" in
-        let today_price = GetEnd today in
-        if latest70_static.Trend = "Bull" then false
-        else
-        List.head((CalcDown hqlist 1))/today_price < distance2B
 
-let TwoBOpenWith100 distance2B today hqlist = 
+let TwoBOpenBear distance2B today hqlist = 
         let latest140_static =  static_of (hqlist |> List.rev |> (filtLastnday 140) |> List.rev) "demo" in
         let today_price = GetEnd today in
         if latest140_static.Trend = "Bull" then false
         else
         List.head((CalcDown hqlist 1))/today_price < distance2B
-let TwoBOpenWithLastNDays distance2B today hqlist N= 
+let PressureOpenWithLastNDays distance2B today hqlist N= 
         let latestNHQ = (hqlist |> List.rev |> (filtLastnday N) |> List.rev) in
         let latestN_static =  static_of (hqlist |> List.rev |> (filtLastnday N) |> List.rev) "demo" in
         let today_price = GetEnd today in
@@ -71,11 +65,11 @@ let TwoBOpenWithLastNDays distance2B today hqlist N=
         let estimateprice = List.head(CalcDown latestNHQ 1) in
         (estimateprice > today_price) && (estimateprice/today_price < distance2B)
 
-let TwoBOpen_Bear distance2B hqlist = 
+let PressureOpen_Bear distance2B hqlist = 
         if (List.length hqlist) < 70 then false
         else
         let today = FindLatestRecord hqlist in
-        let lastN = TwoBOpenWithLastNDays distance2B today hqlist in
+        let lastN = PressureOpenWithLastNDays distance2B today hqlist in
         lastN 70 || lastN 90 || lastN 110 || lastN 130 || lastN 150 || lastN 170 || lastN 190
 
 let BearOpenwrong_NeedClose  openprice latestRecordprice rate = 
@@ -166,11 +160,11 @@ let ExplainResult (tradelist : ((float * 'a) list)) =
         ((totalearn, earntime), (totalloss, losstime))
 let Bollverify loss win = Verify NearBollLBOpen (NearBollLBClose  loss win) Demo_summary
 let BollverifyBear loss win = Verify NearBollUBOpen (NearBollUBClose  loss win) Demo_summary_bear
-let TwoBverifyBear distance2B loss win = Verify (TwoBOpen_Bear distance2B) (TwoBClose_Bear loss win) Demo_summary_bear
+let PressureverifyBear distance2B loss win = Verify (PressureOpen_Bear distance2B) (TwoBClose_Bear loss win) Demo_summary_bear
 let SHbyTime startt endt = FQHQInTime "SH000001" startt endt
 let SHBollInShort loss win startt endt = Bollverify loss win ((SHbyTime startt endt) |> OneFourS |> List.rev)
 let SHBollIn loss win startt endt = Bollverify loss win ((SHbyTime startt endt) |> List.rev)
 let SHBollInShortBear loss win startt endt = BollverifyBear loss win ((SHbyTime startt endt) |> OneFourS |> List.rev)
 let SHBollInBear loss win startt endt = BollverifyBear loss win ((SHbyTime startt endt) |> List.rev)
-let SHTwoBBear distance2B loss win startt endt = TwoBverifyBear distance2B loss win ((SHbyTime startt endt) |> List.rev)
+let SHPressureBear distance2B loss win startt endt = PressureverifyBear distance2B loss win ((SHbyTime startt endt) |> List.rev)
 let compare_matrix hqlist matrix = List.map (fun x-> ExplainResult (Bollverify (fst x) (snd x) hqlist)) matrix
