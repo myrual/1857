@@ -39,6 +39,10 @@ let UBOpen latestRecordprice currentbolling =
         let OnWave = (ub - ave) * 0.5 + ave
         (latestRecordprice > OnWave)
 
+let AVEOpen latestRecordprice currentbolling = 
+        let ave = (Average_Boll currentbolling) in
+        (latestRecordprice > ave)
+
 let NearBollOpenWith func_open hqlist = 
         if (List.length hqlist) < 20 then false
         else
@@ -48,6 +52,7 @@ let NearBollOpenWith func_open hqlist =
 
 let NearBollLBOpen = NearBollOpenWith LBOpen
 let NearBollUBOpen = NearBollOpenWith UBOpen
+let NearBollAVEOpen = NearBollOpenWith AVEOpen
 
 
 let TodayIsNotLowestDay hqlist = 
@@ -95,7 +100,7 @@ let Func_CloseWrongBy func_WrongNeedClose openday hqlist rate =
 let BearOpenCorrect_NeedClose openprice hqlist minUP n= 
         let latestRecordprice = hqlist |> FindLatestRecord |> GetEnd in
         let bottom_price = hqlist |> MinPriceRecord |> GetEnd in
-        let benchmarkprice = bottom_price + (openprice - bottom_price)/n  in
+        let benchmarkprice = openprice - (openprice - bottom_price)/n  in
         (latestRecordprice > benchmarkprice) && ((openprice - bottom_price)/bottom_price > minUP)
 
 let BullOpenCorrect_NeedClose openprice hqlist minUP n = 
@@ -172,12 +177,14 @@ let ExplainResult (tradelist : ((float * 'a) list)) =
         ((totalearn, earntime), (totalloss, losstime))
 let Bollverify loss win = Verify NearBollLBOpen (NearBollLBClose  loss win) Demo_summary
 let BollverifyBear loss win = Verify NearBollUBOpen (NearBollUBClose  loss win) Demo_summary_bear
+let BollAVEverifyBear loss win = Verify NearBollAVEOpen (NearBollUBClose  loss win) Demo_summary_bear
 let PressureverifyBear distance2B loss win = Verify (PressureOpen_Bear distance2B) (TwoBClose_Bear loss win) Demo_summary_bear
 let TwoBverifyBull distance2B loss win = Verify (TwoBopenBull distance2B) (TwoBClose_Bull loss win) Demo_summary
 let SHbyTime startt endt = FQHQInTime "SH000001" startt endt
 let SHBollInShort loss win startt endt = Bollverify loss win ((SHbyTime startt endt) |> List.rev |> OneFourS )
 let SHBollIn loss win startt endt = Bollverify loss win ((SHbyTime startt endt) |> List.rev)
 let SHBollInShortBear loss win startt endt = BollverifyBear loss win ((SHbyTime startt endt) |> List.rev |> OneFourS )
+let SHBollAVEInShortBear loss win startt endt = BollAVEverifyBear loss win ((SHbyTime startt endt) |> List.rev)
 let SHBollInBear loss win startt endt = BollverifyBear loss win ((SHbyTime startt endt) |> List.rev)
 let SHPressureBear distance2B loss win startt endt = PressureverifyBear distance2B loss win ((SHbyTime startt endt) |> List.rev)
 let SHPressureBearShort distance2B loss win startt endt = PressureverifyBear distance2B loss win ((SHbyTime startt endt) |> List.rev |> OneFourS )
